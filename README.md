@@ -1,2 +1,5 @@
 # instantpayment
-Instant payment demo api
+
+This a demo app for instant payment.
+
+
