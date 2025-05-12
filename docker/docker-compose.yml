@@ -1,0 +1,45 @@
+name: instant-payment
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: payment
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: instant-payment-kafka
+    environment:
+      - KAFKA_KRAFT_MODE=true
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_NODE_ID=1
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=INSIDE://kafka:9094,OUTSIDE://localhost:9092
+      - KAFKA_LISTENERS=INSIDE://kafka:9094,CONTROLLER://kafka:9093,OUTSIDE://kafka:9092
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INSIDE
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_LOG_DIRS=/tmp/kraft-combined-logs
+    ports:
+      - 9092:9092
+      - 9094:9094
+    volumes:
+      - ./kafka:/tmp/kraft-combined-logs
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: instant-payment-kafka-ui
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9094
+      - KAFKA_CLUSTERS_0_READONLY=false
+    depends_on:
+      - kafka
+    ports:
+      - 8085:8080
