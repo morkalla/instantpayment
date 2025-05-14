@@ -23,7 +23,8 @@ class PaymentControllerTest {
 
     @Test
     public void whenInvokePay_thenPaymentServiceInvoked() {
-        PaymentRequestDto requestDto = new PaymentRequestDto("1", "2", LocalDateTime.now(), BigDecimal.ONE);
+        PaymentRequestDto requestDto =
+                new PaymentRequestDto("transactionId", "1", "2", LocalDateTime.now(), BigDecimal.ONE);
 
         paymentController.pay(requestDto);
 

@@ -19,7 +19,12 @@ databaseChangeLog:
                 constraints:
                   nullable: false
             - column:
-                name: amount
+                name: balance
+                type: NUMERIC
+                constraints:
+                  nullable: false
+            - column:
+                name: version
                 type: NUMERIC
                 constraints:
                   nullable: false
@@ -97,3 +102,20 @@ databaseChangeLog:
             referencedTableName: account
             referencedColumnNames: id
             validate: true
+  - changeSet:
+      id: unique_account_account_number
+      author: Mor Kalla
+      changes:
+        - addUniqueConstraint:
+            tableName: account
+            columnNames: account_number
+            constrainName: account_account_number_uq
+  - changeSet:
+      id: unique_transaction_transaction_id
+      author: Mor Kalla
+      changes:
+        - addUniqueConstraint:
+            tableName: transaction
+            columnNames: transaction_id
+            constrainName: transaction_transaction_id_uq
+

@@ -27,7 +27,7 @@ public class DefaultAccountServiceTest {
 
     @Test
     public void givenValidAccount_whenFindAccountByAccountNumber_thenReturnAccount() {
-        Account validAccount = new Account(1L, "123", BigDecimal.ONE);
+        Account validAccount = new Account(1L, "123", BigDecimal.ONE, 1);
 
         Mockito.when(accountRepository.findByAccountNumber("123")).thenReturn(Optional.of(validAccount));
 
@@ -48,6 +48,15 @@ public class DefaultAccountServiceTest {
 
         Assertions.assertThat(exception.getMessage()).isEqualTo("Account not found by account number: 123");
         Mockito.verify(accountRepository).findByAccountNumber("123");
+    }
+
+    @Test
+    public void whenSaveAccount_thenRepositoryInvoked() {
+        Account validAccount = new Account(1L, "123", BigDecimal.ONE, 1);
+
+        defaultAccountService.saveAccount(validAccount);
+
+        Mockito.verify(accountRepository).save(validAccount);
     }
 
 }

@@ -17,4 +17,9 @@ public class DefaultAccountService implements AccountService {
         return accountRepository.findByAccountNumber(accountNumber).orElseThrow(
                 () -> new EntityNotFoundException("Account not found by account number: " + accountNumber));
     }
+
+    @Override
+    public void saveAccount(Account account) {
+        accountRepository.save(account);
+    }
 }

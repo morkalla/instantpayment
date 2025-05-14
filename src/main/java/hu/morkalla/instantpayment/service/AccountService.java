@@ -6,4 +6,6 @@ public interface AccountService {
 
     Account findAccountByAccountNumber(String accountNumber);
 
+    void saveAccount(Account account);
+
 }
