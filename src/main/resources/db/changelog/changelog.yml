@@ -1,0 +1,99 @@
+databaseChangeLog:
+  - changeSet:
+      id: create_table_account
+      author: Mor Kalla
+      changes:
+       - createTable:
+          tableName: account
+          columns:
+            - column:
+                name: id
+                type: BIGINT
+                autoIncrement: true
+                constraints:
+                  primaryKey: true
+                  nullable: false
+            - column:
+                name: account_number
+                type: VARCHAR(50)
+                constraints:
+                  nullable: false
+            - column:
+                name: amount
+                type: NUMERIC
+                constraints:
+                  nullable: false
+  - changeSet:
+      id: create_table_transaction
+      author: Mor Kalla
+      changes:
+       - createTable:
+          tableName: transaction
+          columns:
+            - column:
+                name: id
+                type: BIGINT
+                autoIncrement: true
+                constraints:
+                  primaryKey: true
+                  nullable: false
+            - column:
+                name: transaction_id
+                type: VARCHAR(50)
+                constraints:
+                  nullable: false
+            - column:
+                name: source_account_id
+                type: BIGINT
+                constraints:
+                  nullable: false
+            - column:
+                name: target_account_id
+                type: BIGINT
+                constraints:
+                  nullable: false
+            - column:
+                name: amount
+                type: NUMERIC
+                constraints:
+                  nullable: false
+            - column:
+                name: time
+                type: TIMESTAMP WITHOUT TIME ZONE
+                constraints:
+                  nullable: false
+            - column:
+                name: status
+                type: VARCHAR(15)
+                constraints:
+                  nullable: false
+  - changeSet:
+      id: foreign_key_transaction_source_account_id
+      author: Mor Kalla
+      changes:
+        - addForeignKeyConstraint:
+            constraintName: transaction_source_account_id_fkey
+            baseTableName: transaction
+            baseColumnNames: source_account_id
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedTableName: account
+            referencedColumnNames: id
+            validate: true
+  - changeSet:
+      id: foreign_key_transaction_target_account_id
+      author: Mor Kalla
+      changes:
+        - addForeignKeyConstraint:
+            constraintName: transaction_target_account_id_fkey
+            baseTableName: transaction
+            baseColumnNames: target_account_id
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedTableName: account
+            referencedColumnNames: id
+            validate: true

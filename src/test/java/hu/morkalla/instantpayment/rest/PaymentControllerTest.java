@@ -27,7 +27,7 @@ class PaymentControllerTest {
 
         paymentController.pay(requestDto);
 
-        Mockito.verify(paymentService).pay(requestDto);
+        Mockito.verify(paymentService).transfer(requestDto);
     }
 
 }

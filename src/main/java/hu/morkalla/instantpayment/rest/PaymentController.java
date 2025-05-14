@@ -19,6 +19,6 @@ public class PaymentController {
     @Operation(summary = "Handle payment request")
     @PostMapping
     public void pay(@RequestBody PaymentRequestDto paymentRequestDto) {
-        paymentService.pay(paymentRequestDto);
+        paymentService.transfer(paymentRequestDto);
     }
 }

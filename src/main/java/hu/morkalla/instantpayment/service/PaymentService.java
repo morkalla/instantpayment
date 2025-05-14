@@ -4,6 +4,6 @@ import hu.morkalla.instantpayment.rest.domain.PaymentRequestDto;
 
 public interface PaymentService {
 
-    void pay(PaymentRequestDto paymentRequestDto);
+    void transfer(PaymentRequestDto paymentRequestDto);
 
 }
