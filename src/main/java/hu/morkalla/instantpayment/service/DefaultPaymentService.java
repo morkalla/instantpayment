@@ -2,6 +2,7 @@ package hu.morkalla.instantpayment.service;
 
 import hu.morkalla.instantpayment.domain.Account;
 import hu.morkalla.instantpayment.domain.Transaction;
+import hu.morkalla.instantpayment.exception.AccountBalanceHasChanged;
 import hu.morkalla.instantpayment.exception.EntityNotFoundException;
 import hu.morkalla.instantpayment.exception.NotEnoughBalance;
 import hu.morkalla.instantpayment.exception.TransactionAlreadyProcessed;
@@ -22,10 +23,11 @@ public class DefaultPaymentService implements PaymentService {
 
     private final AccountService accountService;
     private final TransactionService transactionService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
-    @Retryable(retryFor = StaleObjectStateException.class,
+    @Retryable(retryFor = AccountBalanceHasChanged.class,
             notRecoverable = {NotEnoughBalance.class, TransactionAlreadyProcessed.class, EntityNotFoundException.class},
             backoff = @Backoff(delay = 100))
     public void transfer(PaymentRequestDto paymentRequestDto) {
@@ -46,29 +48,28 @@ public class DefaultPaymentService implements PaymentService {
             sourceAccount.setBalance(newSourceBalance);
             targetAccount.setBalance(targetAccount.getBalance().add(transactionAmount));
 
-            accountService.saveAccount(sourceAccount);
-            accountService.saveAccount(targetAccount);
+            try {
+                accountService.saveAccount(sourceAccount);
+                accountService.saveAccount(targetAccount);
+            } catch (StaleObjectStateException exception) {
+                throw new AccountBalanceHasChanged("Account balance has changed", sourceAccount.getId(), targetAccount.getId());
+            }
 
-            transactionService.saveTransaction(
-                    new Transaction(null, transactionId, sourceAccount.getId(), targetAccount.getId(), transactionAmount, paymentRequestDto.transactionDate(), "COMPLETED"));
+            Transaction completedTransaction = new Transaction(null, transactionId, sourceAccount.getId(), targetAccount.getId(), transactionAmount, paymentRequestDto.transactionDate(), "COMPLETED");
+            transactionService.saveTransaction(completedTransaction);
+            notificationService.sendNotification(completedTransaction);
         } else {
             throw new NotEnoughBalance("Not enough balance for transaction: " + transactionId);
         }
     }
 
     @Recover
-    public void recover(StaleObjectStateException exception, PaymentRequestDto paymentRequestDto) {
-        Account sourceAccount =
-                accountService.findAccountByAccountNumber(paymentRequestDto.sourceAccountNumber());
-        Account targetAccount =
-                accountService.findAccountByAccountNumber(paymentRequestDto.targetAccountNumber());
-
+    public void recover(AccountBalanceHasChanged exception, PaymentRequestDto paymentRequestDto) {
         transactionService.saveTransaction(
                 new Transaction(null, paymentRequestDto.transactionId(),
-                        sourceAccount.getId(),
-                        targetAccount.getId(),
+                        exception.getSourceAccountId(),
+                        exception.getTargetAccountId(),
                         paymentRequestDto.transactionAmount(), paymentRequestDto.transactionDate(), "FAILED"));
-
     }
 
     private void validateTransactionUnique(String transactionId) {
